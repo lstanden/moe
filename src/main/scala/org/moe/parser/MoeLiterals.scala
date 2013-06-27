@@ -67,9 +67,9 @@ trait MoeLiterals extends JavaTokenParsers with MoeQuoteParser {
     s => MoeStringParser.interpolateStr(s)
   }
 
-  def singleQuoteString: Parser[StringLiteralNode] = quoted('\'') ^^ {
+  def singleQuoteString: Parser[StringLiteralNode] = positioned(quoted('\'') ^^ {
     s => StringLiteralNode(s)
-  }
+  })
 
   // Self Literal
 
@@ -83,7 +83,7 @@ trait MoeLiterals extends JavaTokenParsers with MoeQuoteParser {
   // TODO: support for other delimiters
   def regexLiteral: Parser[RegexLiteralNode] = quoted('/') ^^ { rx => RegexLiteralNode(rx) }
 
-  def literalValue: Parser[AST] = (
+  def literalValue: Parser[AST] = positioned(
       floatNumber
     | intNumber
     | octIntNumber

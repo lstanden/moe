@@ -182,7 +182,7 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
 
   // Pair Literals
 
-  def pair: Parser[PairLiteralNode] = (hashKey <~ "=>") ~ expression ^^ { 
+  def pair: Parser[PairLiteralNode] = (hashKey <~ "=>") ~ expression ^^ {
     case k ~ v => PairLiteralNode(k, v) 
   }
 
@@ -284,18 +284,18 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
             exprs,
             (p) => VariableDeclarationNode(p._1, p._2))
     )
-  }  
+  }
 
   def multiVariableAssignment = ("(" ~> repsep(variableName, ",") <~ ")") ~ "=" ~ ("(" ~> repsep(expression, ",") <~ ")") ^^ {
     case vars ~ _ ~ exprs => MultiVariableAssignmentNode(
       vars.map( { case VariableNameNode(vname) => vname } ),
       exprs
     )
-  }    
+  }
 
   def multiAttributeAssignment = ("(" ~> repsep(attributeName, ",") <~ ")") ~ "=" ~ ("(" ~> repsep(expression, ",") <~ ")") ^^ {
     case vars ~ _ ~ exprs => MultiAttributeAssignmentNode(vars.map({case AttributeNameNode(aname) => aname}), exprs)
-  }   
+  }
 
   /**
    * regex match/substitution etc
@@ -443,10 +443,10 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
     case n ~ None    ~ b => SubMethodDeclarationNode(n, SignatureNode(List()), b) 
   }
 
-  def classBodyParts: Parser[AST] = (
+  def classBodyParts: Parser[AST] = positioned(
       methodDecl
     | submethodDecl
-    | (attributeDecl <~ statementDelim)
+    | attributeDecl <~ statementDelim
     | attributeDecl
   )
 
@@ -469,8 +469,8 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
 
   def useStatement: Parser[UseStatement] = ("use" ~> namespacedIdentifier) ^^ UseStatement
 
-  def elseBlock: Parser[IfStruct] = "else" ~> block ^^ { 
-    case body => new IfStruct(BooleanLiteralNode(true), body) 
+  def elseBlock: Parser[IfStruct] = "else" ~> block ^^ {
+    case body => new IfStruct(BooleanLiteralNode(true), body)
   }
 
   def elsifBlock: Parser[IfStruct] = "elsif" ~> ("(" ~> expression <~ ")") ~ block ~ (elsifBlock | elseBlock).? ^^ {
@@ -526,7 +526,7 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
    *********************************************************************
    */  
 
-  lazy val blockStatement: Parser[AST] = (
+  lazy val blockStatement: Parser[AST] = positioned(
       ifElseBlock
     | unlessElseBlock
     | whileBlock
@@ -537,13 +537,13 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
     | tryBlock
   ) <~ opt(statementDelim)
 
-  lazy val declarationStatement: Parser[AST] = (
+  lazy val declarationStatement: Parser[AST] = positioned(
       packageDecl
     | subroutineDecl
     | classDecl
   ) <~ opt(statementDelim)
 
-  lazy val simpleStatement: Parser[AST] = (
+  lazy val simpleStatement: Parser[AST] = positioned(
       variableDeclaration
     | multiVariableDeclaration    
     | useStatement    
@@ -556,14 +556,14 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
    * Statement modifiers
    */
 
-  lazy val modifiedStatement: Parser[AST] = simpleStatement ~ "if|unless|for(each)?|while|until".r ~ expression ^^ {
+  lazy val modifiedStatement: Parser[AST] = positioned(simpleStatement ~ "if|unless|for(each)?|while|until".r ~ expression ^^ {
     case stmt ~ "if"      ~ cond => IfNode(new IfStruct(cond, StatementsNode(List(stmt))))
     case stmt ~ "unless"  ~ cond => UnlessNode(new UnlessStruct(cond, StatementsNode(List(stmt))))
     case stmt ~ "foreach" ~ list => ForeachNode(VariableDeclarationNode("$_", UndefLiteralNode()), list, StatementsNode(List(stmt)))
     case stmt ~ "for"     ~ list => ForeachNode(VariableDeclarationNode("$_", UndefLiteralNode()), list, StatementsNode(List(stmt)))
     case stmt ~ "while"   ~ cond => WhileNode(cond, StatementsNode(List(stmt)))
     case stmt ~ "until"   ~ cond => WhileNode(PrefixUnaryOpNode(cond, "!"), StatementsNode(List(stmt)))
-  }
+  })
 
   lazy val statement: Parser[AST] = ( modifiedStatement | simpleStatement )
   lazy val terminatedStatement: Parser[AST] = statement <~ statementDelim

@@ -22,12 +22,15 @@ class LinePositionInformation extends FunSuite with BeforeAndAfter with ParserTe
       cb_count += 1
       ast.pos match {
         case NoPosition => None
-        case _ => line_list += ast.pos.line
+        case _ => {
+          line_list += ast.pos.line
+//          println(ast.pos.longString)
+        }
       }
     }
     walkAST(result, cb)
-
-    // if statement
-    assert(line_list(0) == 3)
+//    println(result)
+//    println(line_list)
+    assert(line_list == List(2,2,3))
   }
 }

@@ -11,7 +11,7 @@ object MoeStringParser extends MoeQuoteParser {
 
   private def string: Parser[AST] = rep(stringPart) ^^ { xs => StringSequenceNode(xs) }
 
-  private def stringPart: Parser[AST] = (
+  private def stringPart: Parser[AST] = positioned(
       block
     | unicodeChar
     | array
