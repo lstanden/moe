@@ -4,6 +4,7 @@ import scala.util.parsing.combinator._
 
 import org.moe.ast._
 import org.moe.runtime._
+import scala.util.parsing.input.CharArrayReader
 
 object MoeParser extends MoeProductions {
   def getEntryPoint: Parser[AST] = statements
@@ -12,7 +13,7 @@ object MoeParser extends MoeProductions {
   def parseFromEntry(input: String): StatementsNode = {
     def error_msg(msg: String, next: Input) = "[" + next.pos + "] error: " + msg + "\n\n" + next.pos.longString
 
-    parseAll(getEntryPoint, input) match {
+    parseAll(getEntryPoint, new CharArrayReader(input.toArray)) match {
       case Success(result, _)   => result.asInstanceOf[StatementsNode]
       case NoSuccess(msg, next) => if (next.atEnd)
                                     throw new MoeErrors.ParserInputIncomplete(error_msg(msg, next))
@@ -27,7 +28,7 @@ object MoeParser extends MoeProductions {
   def testParser(input: String, parser: Parser[AST] = getEntryPoint): AST = {
     def error_msg(msg: String, next: Input) = "[" + next.pos + "] error: " + msg + "\n\n" + next.pos.longString
 
-    parseAll(parser, input) match {
+    parseAll(parser, new CharArrayReader(input.toArray)) match {
       case Success(result, _)   => result
       case NoSuccess(msg, next) => if (next.atEnd)
                                     throw new MoeErrors.ParserInputIncomplete(error_msg(msg, next))

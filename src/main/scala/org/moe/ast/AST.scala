@@ -1,8 +1,9 @@
 package org.moe.ast
 
 import org.moe.runtime._
+import scala.util.parsing.input.Positional
 
-abstract class AST
+abstract class AST extends Positional
 
 // AST containers
 

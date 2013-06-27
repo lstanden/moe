@@ -264,7 +264,7 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
 
   def variableDeclaration = "my" ~> variableName ~ ("=" ~> expression).? ^^ {
     case VariableNameNode(v) ~ expr => VariableDeclarationNode(v, expr.getOrElse(UndefLiteralNode()))
-  }  
+  }
 
   private def zipEm (x: List[String], y: List[AST], f: ((String, AST)) => AST): List[AST] = {
     if (y.isEmpty) 
@@ -478,10 +478,10 @@ trait MoeProductions extends MoeLiterals with JavaTokenParsers with PackratParse
     case cond ~ body ~ more => new IfStruct(cond, body, more)
   }
 
-  def ifElseBlock: Parser[AST] = "if" ~> ("(" ~> expression <~ ")") ~ block ~ (elsifBlock | elseBlock).? ^^ { 
+  def ifElseBlock: Parser[AST] = positioned("if" ~> ("(" ~> expression <~ ")") ~ block ~ (elsifBlock | elseBlock).? ^^ {
     case if_cond ~ if_body ~ None        => IfNode(new IfStruct(if_cond,if_body)) 
     case if_cond ~ if_body ~ Some(_else) => IfNode(new IfStruct(if_cond,if_body, Some(_else))) 
-  }
+  })
 
   def unlessElseBlock: Parser[AST] = "unless" ~> ("(" ~> expression <~ ")") ~ block ~ (elsifBlock | elseBlock).? ^^ { 
     case unless_cond ~ unless_body ~ None        => UnlessNode(new UnlessStruct(unless_cond, unless_body))
